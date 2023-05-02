@@ -1,7 +1,5 @@
-
-import { Icon } from 'react-native-elements'
 import { StyleSheet, Text, View } from 'react-native';
-import { Feather } from "react-native-vector-icons"
+import { Feather } from '@expo/vector-icons';
 const range = (start, end, length = end - start + 1) => Array.from({ length }, (_, i) => start + i)
 
 const buttons = [
@@ -36,7 +34,7 @@ const buttons = [
   { text: "1" },
   { text: "2" },
   { text: "3" }, { text: "+", color: "#e26262" },
-  { text: <Feather name="rotate-ccw" size={30} /> },
+  { text: <Feather name="rotate-ccw" size={24} /> },
   { text: "0" },
   { text: "." }, { text: "=", color: "#e26262" }]
 const history = ["9*8", "6+4", "5/3", "1+1"]
@@ -111,7 +109,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: "lightgray"
+    backgroundColor: "#1e1e1e"
   },
   visorContainer: {
     backgroundColor: "#1e1e1e",
@@ -144,6 +142,8 @@ const styles = StyleSheet.create({
     flex: 6, backgroundColor: "#3f3d41",
     flexWrap: 'wrap', flexDirection: "row",
     gap: 10,
+    borderTopEndRadius: 10,
+    borderTopStartRadius: 10,
     justifyContent: "space-between", alignContent: "space-between",
     paddingBottom: 70,
     paddingHorizontal: 15,
