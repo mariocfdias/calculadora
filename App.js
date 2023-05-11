@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Button from "./components/Button"
 import { useState } from 'react';
-import {buttons, getOperator} from "./utils"
+import { buttons, getOperator } from "./utils"
+
 const range = (start, end, length = end - start + 1) => Array.from({ length }, (_, i) => start + i)
 
 
@@ -16,20 +17,21 @@ export default function App() {
       <View style={styles.visorContainer}>
         <View style={styles.historyContainer}>
 
-           <Text style={styles.historyText}>
-              {lastOperation}
-            </Text>
+          <Text style={styles.historyText}>
+            {lastOperation}
+          </Text>
 
 
         </View>
 
         <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>
+          {!zeroDivisionFlag ? <Text
+            numberOfLines={2}
+            style={styles.resultText}>
+            {firstOperator} <Text style={styles.operation}>{operation}</Text> {secondOperator}
+          </Text> : <Text style={styles.resultText}>Divisão por zero</Text>
 
-            {zeroDivisionFlag && "Impossivel dividir por zero"}
-            {`${firstOperator} ${operation} ${secondOperator}`}
-          </Text>
-
+          }
         </View>
 
       </View>
@@ -40,76 +42,101 @@ export default function App() {
             return <View style={styles.row}>
               {range(0, 3).map((column) => {
                 return <Button
-                color={buttons[row * 4 + column].color}
-                pressCb={() => {
-                  const buttonPressed = buttons[row * 4 + column]
-                  switch(buttonPressed.type){
-                    case "NUMBER":
-                    !operation ? setFirstOperator(
-                      firstOperator + buttons[row * 4 + column].text
-                      ) : setSecondOperator(
-                        secondOperator + buttons[row * 4 + column].text
-                      )
-                    break
-                    case "OPERATION":
-                      if(secondOperator){
-                        if(getOperator(operation) == "/" && secondOperator == "0"){
-                          setZeroDivisionFlag(true)
-                        }
-                        else{
-                          setFirstOperator(
-                            eval(`${firstOperator} ${getOperator(operation)} ${secondOperator}`)
+                  color={buttons[row * 4 + column].color}
+                  pressCb={() => {
+                    const buttonPressed = buttons[row * 4 + column]
+                    switch (buttonPressed.type) {
+                      case "NUMBER":
+                        !operation ? firstOperator.length <= 9 && setFirstOperator(
+                          firstOperator + buttons[row * 4 + column].text
+                        ) : secondOperator.length <= 9 && setSecondOperator(
+                          secondOperator + buttons[row * 4 + column].text
+                        )
+                        break
+                      case "OPERATION":
+                        if (secondOperator) {
+                          if (getOperator(operation) == "/" && secondOperator == "0") {
+                            setZeroDivisionFlag(true)
+                          }
+                          else {
+
+                            setFirstOperator(
+                              eval(`${firstOperator} ${getOperator(operation)} ${secondOperator}`).toFixed(2).toString()
                             )
-                            setOperation(buttons[row * 4 + column].text) 
+                            setOperation(buttons[row * 4 + column].text)
                             setSecondOperator("")
                             setLastOperation(`${firstOperator} ${operation} ${secondOperator}`)
 
+
+                          }
+
+                        } else {
+                          if (firstOperator)
+                            setOperation(buttons[row * 4 + column].text)
+
                         }
 
-                      }else{
-                        setOperation(buttons[row * 4 + column].text) 
-                                        
-                      }
 
-                      
-                     
 
-                      break
-                    case "CLEAR":
-                      setFirstOperator("")
-                      setOperation("")
-                      setSecondOperator("") 
-                      setLastOperation("")
-                      setZeroDivisionFlag(false)
-                    break
-                    case "EQUALS":
-                      if(getOperator(operation) == "/" && secondOperator == "0"){
-                        setZeroDivisionFlag(true)
-                      }
-                      else{
-                      setFirstOperator(
-                        eval(`${firstOperator} ${getOperator(operation)} ${secondOperator}`)
-                        )
-                        setOperation("") 
+
+                        break
+                      case "CLEAR":
+                        setFirstOperator("")
+                        setOperation("")
                         setSecondOperator("")
-                        setLastOperation(`${firstOperator} ${operation} ${secondOperator}`)
-                      }
-                    break;
-                    case "UNITOPERATION":
-                      if(buttonPressed.text == "%" && firstOperator){
-                        setFirstOperator(
-                          eval(`${firstOperator} / 100`)
-                        )
-                      }
-                      else if(buttonPressed.text == "+/-" && firstOperator){
-                        setFirstOperator(
-                          eval(`${firstOperator} * -1`)
-                        )
-                      }
-                      
-                      break;
-                  }
-                }}
+                        setLastOperation("")
+                        setZeroDivisionFlag(false)
+                        break
+                      case "EQUALS":
+                        if (!firstOperator || !operation || !secondOperator) return
+
+
+                        if (getOperator(operation) == "/" && secondOperator == "0") {
+                          setZeroDivisionFlag(true)
+                        }
+                        else {
+                          setFirstOperator(
+                            eval(`${firstOperator} ${getOperator(operation)} ${secondOperator}`).toFixed(2).toString()
+                          )
+                          setOperation("")
+                          setSecondOperator("")
+                          setLastOperation(`${firstOperator} ${operation} ${secondOperator}`)
+                        }
+                        break;
+                      case "UNITOPERATION":
+                        if (buttonPressed.text == "%" && firstOperator) {
+                          setFirstOperator(
+                            eval(`${firstOperator} / 100`).toFixed(2).toString()
+                          )
+                        }
+                        else if (buttonPressed.text == "+/-" && firstOperator) {
+                          setFirstOperator(
+                            eval(`${firstOperator} * -1`).toFixed(2).toString()
+                          )
+                        }
+
+                        break;
+                      case "DOT":
+                        if (!secondOperator && !firstOperator.includes(".") && !secondOperator) setFirstOperator(firstOperator + ".")
+                        if (secondOperator && !secondOperator.includes(".")) setSecondOperator(secondOperator + ".")
+
+                        break;
+                      case "DELETE":
+                        if (secondOperator && firstOperator) {
+                          setSecondOperator(secondOperator.slice(0, -1))
+                        }
+                        if (!secondOperator && firstOperator && operation) {
+
+                          setOperation("")
+                        }
+                        if (firstOperator && !secondOperator && !operation) {
+
+                          setFirstOperator(firstOperator.slice(0, -1))
+                        }
+
+                        break
+                    }
+                  }}
                 >
                   {buttons[row * 4 + column].text}
                 </Button>
@@ -145,13 +172,13 @@ const styles = StyleSheet.create({
     width: "100%"
   },
   historyContainer: {
-    flex: 2,
+    flex: 1,
     justifyContent: "flex-end",
     alignItems: "flex-end",
     padding: 10
   },
   resultContainer: {
-    flex: 1,
+    flex: 2,
     width: "100%",
     justifyContent: "flex-end",
     alignItems: "flex-end",
@@ -173,10 +200,9 @@ const styles = StyleSheet.create({
     borderTopEndRadius: 10,
     borderTopStartRadius: 10,
     justifyContent: "space-between", alignContent: "space-between",
-    paddingBottom: 70,
     paddingHorizontal: 15,
     paddingTop: 10,
-    backgroundColor: "#22252d"
+    backgroundColor: "#22252d",
   },
   column: {
     flexDirection: "column",
@@ -193,6 +219,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     width: "100%",
     gap: 30
+  },
+  operation: {
+    color: "#e26262"
   }
 
 });

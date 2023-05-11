@@ -5,12 +5,13 @@ export default styles = StyleSheet.create({
         fontSize: 36,
         color: "#f4f4f5",
         flex: 1,
-      
+        textAlignVertical: "center",
+        textAlign: "center"
     },
     buttonView: {
         flex: 1,
-        width: 40,
-        height: 40,
+        width: 600,
+        height: 60,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
