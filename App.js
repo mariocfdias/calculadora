@@ -1,64 +1,33 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import Button from "./components/Button"
+import { useState } from 'react';
+import {buttons, getOperator} from "./utils"
 const range = (start, end, length = end - start + 1) => Array.from({ length }, (_, i) => start + i)
 
-const buttons = [
-  {
-    text: "AC",
-    color: "#27f5ce"
-  }
-  , {
-    text: "+/-",
-    color: "#27f5ce"
 
-  }, {
-    text: "%",
-    color: "#27f5ce"
-
-  }, {
-    text: "÷",
-    color: "#e26262"
-  },
-  { text: "7" },
-  { text: "8" },
-  { text: "9" }, {
-    text: "X",
-    color: "#e26262"
-  },
-  { text: "4" },
-  { text: "5" },
-  { text: "6" }, {
-    text: "-",
-    color: "#e26262"
-  },
-  { text: "1" },
-  { text: "2" },
-  { text: "3" }, { text: "+", color: "#e26262" },
-  { text: <Feather name="rotate-ccw" size={24} /> },
-  { text: "0" },
-  { text: "." }, { text: "=", color: "#e26262" }]
-const history = ["9*8", "6+4", "5/3", "1+1"]
-
-const actualValue = 1238
 export default function App() {
+  const [firstOperator, setFirstOperator] = useState("")
+  const [operation, setOperation] = useState("")
+  const [secondOperator, setSecondOperator] = useState("")
+  const [lastOperation, setLastOperation] = useState("")
+  const [zeroDivisionFlag, setZeroDivisionFlag] = useState(false)
   return (
     <View style={styles.container}>
       <View style={styles.visorContainer}>
         <View style={styles.historyContainer}>
 
-          {history.map(value => {
-            return <Text style={styles.historyText}>
-              {value}
+           <Text style={styles.historyText}>
+              {lastOperation}
             </Text>
 
-          })}
 
         </View>
 
         <View style={styles.resultContainer}>
           <Text style={styles.resultText}>
 
-            {actualValue}
+            {zeroDivisionFlag && "Impossivel dividir por zero"}
+            {`${firstOperator} ${operation} ${secondOperator}`}
           </Text>
 
         </View>
@@ -70,21 +39,80 @@ export default function App() {
           {range(0, 4).map((row) => {
             return <View style={styles.row}>
               {range(0, 3).map((column) => {
-                return <View
-                  style={{
-                    flex: 1,
-                    width: 40,
-                    height: 40,
-                    justifyContent: "center",
-                    alignItems: "center"
-                  }}>
-                  <Text style={{
-                    fontSize: 36,
-                    color: buttons[row * 4 + column].color ? buttons[row * 4 + column].color : "#f4f4f5"
-                  }}>
-                    {buttons[row * 4 + column].text}
-                  </Text>
-                </View>
+                return <Button
+                color={buttons[row * 4 + column].color}
+                pressCb={() => {
+                  const buttonPressed = buttons[row * 4 + column]
+                  switch(buttonPressed.type){
+                    case "NUMBER":
+                    !operation ? setFirstOperator(
+                      firstOperator + buttons[row * 4 + column].text
+                      ) : setSecondOperator(
+                        secondOperator + buttons[row * 4 + column].text
+                      )
+                    break
+                    case "OPERATION":
+                      if(secondOperator){
+                        if(getOperator(operation) == "/" && secondOperator == "0"){
+                          setZeroDivisionFlag(true)
+                        }
+                        else{
+                          setFirstOperator(
+                            eval(`${firstOperator} ${getOperator(operation)} ${secondOperator}`)
+                            )
+                            setOperation(buttons[row * 4 + column].text) 
+                            setSecondOperator("")
+                            setLastOperation(`${firstOperator} ${operation} ${secondOperator}`)
+
+                        }
+
+                      }else{
+                        setOperation(buttons[row * 4 + column].text) 
+                                        
+                      }
+
+                      
+                     
+
+                      break
+                    case "CLEAR":
+                      setFirstOperator("")
+                      setOperation("")
+                      setSecondOperator("") 
+                      setLastOperation("")
+                      setZeroDivisionFlag(false)
+                    break
+                    case "EQUALS":
+                      if(getOperator(operation) == "/" && secondOperator == "0"){
+                        setZeroDivisionFlag(true)
+                      }
+                      else{
+                      setFirstOperator(
+                        eval(`${firstOperator} ${getOperator(operation)} ${secondOperator}`)
+                        )
+                        setOperation("") 
+                        setSecondOperator("")
+                        setLastOperation(`${firstOperator} ${operation} ${secondOperator}`)
+                      }
+                    break;
+                    case "UNITOPERATION":
+                      if(buttonPressed.text == "%" && firstOperator){
+                        setFirstOperator(
+                          eval(`${firstOperator} / 100`)
+                        )
+                      }
+                      else if(buttonPressed.text == "+/-" && firstOperator){
+                        setFirstOperator(
+                          eval(`${firstOperator} * -1`)
+                        )
+                      }
+                      
+                      break;
+                  }
+                }}
+                >
+                  {buttons[row * 4 + column].text}
+                </Button>
               })}
 
 
@@ -130,13 +158,13 @@ const styles = StyleSheet.create({
     padding: 10
   },
   historyText: {
-    fontSize: 30,
-    color: "white"
+    fontSize: 26,
+    color: "#bfc1c3"
   },
   resultText: {
     fontSize: 54,
     fontWeight: 800,
-    color: "white"
+    color: "#fffefe"
   },
   buttonsContainer: {
     flex: 6, backgroundColor: "#3f3d41",
